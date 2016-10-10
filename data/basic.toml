@@ -1,0 +1,6 @@
+# basic toml for your visi
+title = "aaa"
+isVip = false
+age = 18
+balance = 1840.00
+tags = ["a", "B", "C", ]

@@ -1,0 +1,10 @@
+# with sub section
+title = "aaa"
+isVip = false
+age = 18
+balance = 1840.00
+tags = ["a", "B", "C", ]
+
+[hosts]
+ip="192.168.1.1"
+ports=[8001, 8002, 8003]

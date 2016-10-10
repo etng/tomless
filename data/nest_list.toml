@@ -1,0 +1,7 @@
+
+title = "aaa"
+isVip = false
+age = 18
+balance = 1840.00
+# be careful
+data = [ ["gamma", "delta"], [1, 2] ]
