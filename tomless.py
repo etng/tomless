@@ -25,6 +25,10 @@ def unescape(s):
     )
     for src, dst in escaping_map:
         s = s.replace(src, dst)
+    try:
+        s = s.decode('utf-8')
+    except Exception as e:
+        print(e.message)
     return s
 
 class TomlTokenizer(object):
@@ -300,6 +304,35 @@ class MyJsonEncoder(json.JSONEncoder):
         else:
             return json.JSONEncoder.default(self, obj)
 
+from xml.etree import ElementTree as Tree
+
+class XmlEncoder(object):
+    '''
+    >>> d = dict(a=1, b=u'hello world', c=[1,2,3,4])
+    >>> print XmlEncoder(root_tag='toml', item_tag='item').encode(d)
+    <toml><item><a>1</a><c><item>1</item><item>2</item><item>3</item><item>4</item></c><b>hello world</b></item></toml>
+    '''
+    def __init__(self, root_tag='root', item_tag='item'):
+        self.root_tag = root_tag
+        self.item_tag = item_tag
+
+    def encode(self, v):
+        root = Tree.Element(self.root_tag)
+        self.encode_node(root, v)
+        return Tree.tostring(root)
+
+    def encode_node(self, parent, v, k=None):
+        child = Tree.SubElement(parent, self.item_tag if k is None else k)
+        if isinstance(v, dict):
+            for k, _v in v.items():
+                self.encode_node(child, _v, k)
+        elif isinstance(v, (tuple, list)):
+            for _v in v:
+                self.encode_node(child, _v)
+        else:
+            child.text = unicode(v)
+
+
 def selftest():
     files = (
         # 'basic.toml',
@@ -319,6 +352,13 @@ def selftest():
         pprint(result)
         print(json.dumps(result, sort_keys=True, indent=2, cls=MyJsonEncoder))
 
+def print_or_save(filename, content):
+    if not filename:
+        print(content)
+        return
+    with open(filename, 'wb') as f:
+        f.write(content)
+
 def execute():
     all_log_level = logging.DEBUG
     token_log_level = logging.INFO
@@ -327,8 +367,8 @@ def execute():
 
     import argparse
     parser = argparse.ArgumentParser(description='TOML file parser')
-    parser.add_argument("-f", "--format", default="json", help="导出的数据格式，可选值为 json/dict/ppdict ，默认是 json")
-    parser.add_argument("-o", "--output", default=None, help="输出结果文件位置，不提供则直接显示")
+    parser.add_argument("-f", "--format", default="json", help="导出的数据格式，可选值为 json/xml/dict/ppdict ，默认是 json")
+    parser.add_argument("-o", "--output", default=None, help="输出结果文件位置，不提供则直接显示, 当数据格式为 json/xml 时有效")
     parser.add_argument("-l", "--log_filename", default=None, help="日志文件保存位置，不提供则直接显示")
     parser.add_argument("-v", "--verbose", default='info', help="日志详细级别，可选的有 info,debug,error 等，默认为info")
     parser.add_argument('filename', nargs=1, help="需要解析的 toml 文件名称")
@@ -349,7 +389,9 @@ def execute():
     filename = args.filename[0]
     result = TomlParser.parse_file(filename)
     if args.format == 'json':
-        print(json.dumps(result, sort_keys=True, indent=2, cls=MyJsonEncoder))
+        print_or_save(args.output, json.dumps(result, sort_keys=True, indent=2, cls=MyJsonEncoder))
+    if args.format == 'xml':
+        print_or_save(args.output, XmlEncoder(root_tag='toml', item_tag='item').encode(result))
     elif args.format == 'ppdict':
         from pprint import pprint
         pprint(result)

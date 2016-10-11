@@ -17,6 +17,7 @@ pip install -e git+git@github.com:etng/tomless.git@master#egg=tomless
 ```
 tomless example.toml -o example.json
 tomless example.toml -f json -o example.json
+tomless example.toml -f xml -o example.json
 tomless example.toml -f dict -o example.txt
 tomless example.toml -f dict
 
