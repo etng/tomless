@@ -21,7 +21,9 @@ tomless example.toml -f xml -o example.json
 tomless example.toml -f dict -o example.txt
 tomless example.toml -f dict
 
-tomless example.toml -f json|pretty json
+# npm install -g prettyjson pretty-xml
+tomless example.toml -f json|prettyjson
+tomless example.toml -f xml|pretty-xml
 ```
 
 ### code
